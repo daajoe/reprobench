@@ -1,4 +1,5 @@
 from functools import lru_cache
+from loguru import logger
 
 from peewee import fn
 
@@ -27,8 +28,12 @@ class CoreObserver(Observer):
     @classmethod
     def get_next_pending_run(cls):
         try:
-            run = Run.select().where(Run.status == Run.PENDING).limit(1).get()
-        except Run.DoesNotExist:
+            run = Run.get_or_none(Run.status == 0)
+        # Attribute error occurs, if no open runs can be found
+        except (Run.DoesNotExist, AttributeError):
+            return None
+
+        if run is None:
             return None
 
         run.status = Run.SUBMITTED
@@ -68,10 +73,12 @@ class CoreObserver(Observer):
     def handle_event(cls, event_type, payload, **kwargs):
         reply = kwargs.pop("reply")
         address = kwargs.pop("address")
-        observe_args = kwargs.pop("observe_args")
+        server = kwargs.pop("server")
+
+        logger.trace(event_type)
 
         if event_type == BOOTSTRAP:
-            bootstrap(observe_args=observe_args, **payload)
+            bootstrap(server=server, **payload)
             pending_runs = cls.get_pending_runs()
             reply.send_multipart([address, encode_message(pending_runs)])
         elif event_type == WORKER_JOIN:

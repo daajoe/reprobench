@@ -1,17 +1,51 @@
-# reprobench
-
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/8163f0d20e9145cf9379a56f0383287c)](https://app.codacy.com/app/rkkautsar/reprobench?utm_source=github.com&utm_medium=referral&utm_content=rkkautsar/reprobench&utm_campaign=Badge_Grade_Dashboard)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/reprobench.svg)](https://pypi.org/project/reprobench)
-[![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=rkkautsar/reprobench)](https://dependabot.com)
-[![Anaconda-Server Badge](https://anaconda.org/rkkautsar/reprobench/badges/installer/conda.svg)](https://conda.anaconda.org/rkkautsar)
+# repobench_ng
+---------
 
 ## Development Guide
+----------
 
-### Installing locally
-
-We recommend using Anaconda.
-
-```sh
-$ conda env create -f environment.yml
-$ conda activate reprobench
+#### Vagrant & miniconda
+After installing vagrant on your operating system, create a vagrant box and init it:
 ```
+vagrant box add ubuntu/trusty64
+vagrant init ubuntu/trusty64
+```
+boot your Vagrant environment:
+```
+vagrant up
+```
+then SSH into your machine:
+```
+vagrant ssh
+```
+then you download and install miniconda:
+```
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+bash Miniconda3-latest-Linux-x86_64.sh
+```
+
+After this clone this repository to your machine:
+```
+git clone -b jkf_wip https://github.com/daajoe/reprobench.git
+```
+
+then move to thir directory:
+```
+cd reprobench
+```
+
+Now we will create an environment based on the yaml file there:
+```
+conda env create -f environment.yml
+```
+
+then activate that environment:
+```
+conda activate rb
+```
+
+Verify that the new environment was installed correctly:
+```
+conda env list
+```
+You can also use `conda info --envs`
