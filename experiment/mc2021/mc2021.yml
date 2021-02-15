@@ -45,7 +45,7 @@ observers:
 #        output: statistics/cactus.ipynb
 
 tasks:
-  track1:
+  track1_full:
     type: file
     path: /projects/p_mcc2020/track1/benchmarks/
     extract_archives: true
@@ -67,19 +67,28 @@ tasks:
 #      TT7F-34-25.cnf.xz
 
 tools:
-  mc2021:
+  mc2021_precomp:
     module: experiment.mc2021.executor.PrefExec
     parameters:
         bash:
-          cmd: "~/reprobench/experiment/mc2021/0-mc2020/track1/{solver}/{solver}.sh {filename}"
+          cmd: "~/reprobench/experiment/mc2021/0-mc2020/track1/{solver}/{solver}_wrapper.sh {filename}"
           solver:
             - d4
-        py:
-          cmd: "/projects/p_mcc2020/track1/bin/solver_binaries/{solver}.py {filename}"
-          solver:
-            - c2d
+	    - cril-d4
+	    - nus-ganak
+	    - nus-onlyapprox
+	    - rice-addmc
+	    - ucla-c2d-bpe2
+	    - ucla-minic2d
+	    - ucla-minic2d-bpe
+	    - ucla-sdd-bpe
+	    
+#        py:
+#          cmd: "/projects/p_mcc2020/track1/bin/solver_binaries/{solver}.py {filename}"
+#          solver:
+#            - c2d
 
 runs:
-  mc2021:
+  mc2021_precomp:
     all:
-      - track1
+      - track1_full
