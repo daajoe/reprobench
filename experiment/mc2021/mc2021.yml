@@ -71,7 +71,7 @@ tools:
     module: experiment.mc2021.executor.PrefExec
     parameters:
         bash:
-          cmd: "/projects/p_mcc2020/track1/bin/solver_binaries/{solver}.sh {filename}"
+          cmd: "~/reprobench/experiment/mc2021/0-mc2020/track1/{solver}/{solver}.sh {filename}"
           solver:
             - d4
         py:
