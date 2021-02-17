@@ -73,7 +73,7 @@ class Tool:
         pass
 
     def get_path(self):
-        if self.path.startswith("~"):
+        if self.path and self.path.startswith("~"):
             return os.path.expanduser(self.path)
         else:
             runtm_path = os.path.join(os.path.dirname(inspect.getfile(self.__class__)), self.path)

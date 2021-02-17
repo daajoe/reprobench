@@ -10,7 +10,8 @@ from reprobench.tools.executable import ExecutableTool
 
 class PrefExec(ExecutableTool):
     name = "MC Preprocessor"
-    path="./pref_retcode_wrapper.sh"
+    path = ""
+    #path="./pref_retcode_wrapper.sh"
 
     def __init__(self, context):
         super().__init__(context)
@@ -23,8 +24,15 @@ class PrefExec(ExecutableTool):
         logger.warning(self.get_path())
         logger.trace(self.get_arguments())
         solver=self.parameters['solver']
-        cmd=self.parameters['cmd'].replace("{solver}", solver)
-        return [self.get_path() + " " + cmd]
+        tmpdir=self.parameters['exec_tmpdir'].format(solver=solver,
+                                                     run="{run}", filename="{filename}")
+        self.tmpdir = tmpdir
+        self.delete_tmp = self.parameters.get('delete_tmp', True)
+        env=self.parameters['env'].format(tmpdir=tmpdir)
+        cmd=self.parameters['cmd'].format(solver=solver, filename="{filename}",
+                                          tmpdir="{tmpdir}", ofilename="{ofilename}")
+        #return [self.get_path() + " " + cmd]
+        return [cmd]
 
     def run(self, executor):
         my_env = os.environ.copy()
@@ -40,4 +48,6 @@ class PrefExec(ExecutableTool):
             out_path=self.get_out_path(),
             err_path=self.get_err_path(),
             output_path=self.output,
+            tmpdir=self.tmpdir,
+            delete_tmp=self.delete_tmp,
         )

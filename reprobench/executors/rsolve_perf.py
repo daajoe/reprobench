@@ -187,14 +187,26 @@ class RunSolverPerfEval(Executor):
         stats = {'date': date, 'platform': platform.platform(aliased=True), 'hostname': platform.node()}
 
         cmdline[0] = str(pathlib.Path(cmdline[0]).resolve())
+        runid = str(out_path.parent).split('/')[-1]
+        short_filename=input_str.split('/')[-1]
 
-        with tempfile.NamedTemporaryFile(prefix='rsolve_perf_tmp', dir='/dev/shm', delete=True) as f:
-            logger.debug(f"Extracting instance {input_str} to {f.name}")
-            if "-f" in input_str:
-                input_str = input_str.split(" ")[1]
-            ifilename = input_str
+        tmpdir=kwargs.get('tmpdir','/run/shm/runsolver').format(filename=short_filename, run=runid)
+        # tmpdir_path=os.path.dirname(tmpdir.format(filename="", run=""))
+        # tmpdir_prefix=tmpdir.format(filename=short_filename, run=runid).replace(f"{tmpdir_path}/", '')
+        # if not os.path.exists(tmpdir_path):
+        #     os.makedirs(tmpdir_path)
 
-            transparent_cat = f"{self.reprobench_path}/lib/tcat.sh -f {input_str} -o {f.name}"
+        # delete_tmp=kwargs.get('delete_tmp', True)
+        #todo:
+        # if delete_tmp:
+        #     f.cleanup()
+
+        tmpdir_prefix=tmpdir.split('/')[-2]+"_"
+        tmpdir_name='/'.join(tmpdir.split('/')[:-2])
+        with tempfile.TemporaryDirectory(prefix=tmpdir_prefix,dir=tmpdir_name) as f:
+            fpath = os.path.join(f,f"{short_filename}.uncompr")
+            logger.debug(f"Extracting instance {input_str} to {fpath}")
+            transparent_cat = f"{self.reprobench_path}/lib/tcat.sh -f {input_str} -o {fpath}"
 
             logger.trace(transparent_cat)
             p_tmpout = Popen(transparent_cat, stdout=PIPE, stderr=PIPE, shell=True, close_fds=True,
@@ -207,28 +219,34 @@ class RunSolverPerfEval(Executor):
                 stats['error'] = err
                 exit(1)
             else:
-                logger.debug(f"Instance is available at {f.name}")
+                logger.error(f"Instance is available at {fpath}")
 
             # TODO: fix out_path
             outdir = self.output_dir(out_path)
+            runid = outdir.split('/')[-1]
             payload_p, perflog, stderr_p, stdout_p, varfile, watcher, runparameters_p = self.log_paths(outdir)
 
-            logger.debug(perflog)
-
-            if '{filename}' in cmdline:
-                debug_cmd=" ".join(cmdline).format(filename=ifilename)
-                logger.info(debug_cmd)
-                solver_cmd = " ".join(cmdline).format(filename=f.name)
-                logger.trace(f"Command (with zcat/... handling): was {solver_cmd}")
+            if '{filename}' in cmdline or '{filename}' in cmdline[0]:
+                solver_cmd = " ".join(cmdline).format(filename=fpath, ofilename=input_str, run=runid,
+                                                      tmpdir=f)
+                logger.info(solver_cmd)
             else:
-                solver_cmd = f"{' '.join(cmdline)} -f {f.name} -i {ifilename}"
+                solver_cmd = f"{' '.join(cmdline)} -f {fpath} -i {input_str}"
 
+            logger.debug(perflog)
             logger.trace(f"Solver command was: {solver_cmd}")
             # perf list
             perfcmdline = f"/usr/bin/perf stat -o {perflog} -e dTLB-load-misses,dTLB-loads,dTLB-store-misses," \
                           f"dTLB-stores,iTLB-load-misses,iTLB-loads,cycles,stalled-cycles-backend,cache-misses " \
                           f"{solver_cmd}"
-            runsolver = os.path.expanduser("~/bin/runsolver")
+
+            runsolver = os.path.abspath(os.path.join(self.reprobench_path, "bin/runsolver"))
+            if not (os.path.isfile(runsolver) and os.access(runsolver, os.X_OK)):
+                logger.critical(f"Runsolver binary could not be found at: {runsolver} or is not executable.")
+                logger.critical(f"Check https://github.com/daajoe/runsolver for making runsolver and "
+                                "place the binary under the name {runsolver}")
+                raise RuntimeError("RUNSOLVER binary could not be found.")
+
             run_cmd = f"{runsolver:s} --delay 20 --rss-swap-limit {self.mem_limit:.0f} -W {self.cpu_limit:.0f}  " \
                       f"-w {watcher:s} -v {varfile:s} {perfcmdline:s} > {stdout_p:s} 2>> {stderr_p:s}"
 
@@ -239,6 +257,8 @@ class RunSolverPerfEval(Executor):
 
             logger.trace(run_cmd)
             logger.info(f"Running {directory}")
+            #TODO: check for environment!!!!! NEXT
+
             p_solver = Popen(run_cmd, stdout=PIPE, stderr=PIPE, shell=True, close_fds=True, cwd=outdir)
             output, err = p_solver.communicate()
 

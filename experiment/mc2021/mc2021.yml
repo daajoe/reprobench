@@ -47,10 +47,12 @@ observers:
 tasks:
   track1_full:
     type: file
-    path: /projects/p_mcc2020/track1/benchmarks/
+#    path: /projects/p_mcc2020/track1/benchmarks/
+    path: /projects/sat/mccompetition/mc_competitions/MCC2021/reprobench/instances
     extract_archives: true
     patterns: |
       **/*
+      **/*.old
       !**/*.tar.bz2
       !**/*.tar.xz
       !**/*.tar.gz
@@ -71,18 +73,21 @@ tools:
     module: experiment.mc2021.executor.PrefExec
     parameters:
         bash:
-          cmd: "~/reprobench/experiment/mc2021/0-mc2020/track1/{solver}/{solver}_wrapper.sh {filename}"
+          exec_tmpdir: "/run/shm/runsolver_mc2021_track1_{solver}_{filename}_{run}/"
+          #not implemented	  	     
+          delete_tmp: True
+          cmd: "/projects/sat/mccompetition/mc_competitions/MCC2021/reprobench/experiment/mc2021/0-mc2020/track1/{solver}/{solver}_wrapper.sh --tmpdir={tmpdir} --origfile={ofilename} {filename}"
+          env: "TMPDIR={tmpdir}"
           solver:
-            - d4
-	    - cril-d4
-	    - nus-ganak
-	    - nus-onlyapprox
-	    - rice-addmc
-	    - ucla-c2d-bpe2
-	    - ucla-minic2d
-	    - ucla-minic2d-bpe
-	    - ucla-sdd-bpe
-	    
+            - cril-d4
+#            - nus-ganak
+#            - nus-onlyapprox
+#            - rice-addmc
+#            - ucla-c2d-bpe2
+#            - ucla-minic2d
+#            - ucla-minic2d-bpe
+#            - ucla-sdd-bpe
+
 #        py:
 #          cmd: "/projects/p_mcc2020/track1/bin/solver_binaries/{solver}.py {filename}"
 #          solver:

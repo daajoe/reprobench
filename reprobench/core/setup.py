@@ -147,13 +147,13 @@ class SetupKernel(Step):
             try:
                 with open(turbo_path, 'w') as turbo_fh:
                     turbo_fh.write('1')
-            except IOError as e:
+            except (IOError,PermissionError) as e:
                 logger.error(
                     'Could not set turbo value to 1 in file {turbo_path}. Probably insufficient permissions.')
                 logger.error(
                     f'You might need to run "echo 1 | sudo  tee {turbo_path}" manually or disable it in '
                     f'the BIOS.')
-                raise RuntimeError('Exiting')
+                #raise RuntimeError('Exiting')
 
     @classmethod
     def execute(cls, context, config=None):
