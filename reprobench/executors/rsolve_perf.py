@@ -64,6 +64,7 @@ class RunSolverPerfEval(Executor):
         self.wall_limit = time_limit + wall_grace
         self.cpu_limit = time_limit
         self.mem_limit = float(limits["memory"]) * megabytes
+        self.tmp_limit = float(limits["tmpdisk"])
         self.reprobench_path = os.path.abspath(os.path.join(os.path.dirname(reprobench.__file__), '..'))
 
     @classmethod
@@ -227,11 +228,16 @@ class RunSolverPerfEval(Executor):
             payload_p, perflog, stderr_p, stdout_p, varfile, watcher, runparameters_p = self.log_paths(outdir)
 
             if '{filename}' in cmdline or '{filename}' in cmdline[0]:
+                logger.error(cmdline)
                 solver_cmd = " ".join(cmdline).format(filename=fpath, ofilename=input_str, run=runid,
-                                                      tmpdir=f)
+                                                      tmpdir=f, memlimit=self.mem_limit,
+                                                      walllimit=self.cpu_limit,
+                                                      #TODO
+                                                      maxtmp=self.tmp_limit)
                 logger.info(solver_cmd)
             else:
                 solver_cmd = f"{' '.join(cmdline)} -f {fpath} -i {input_str}"
+
 
             logger.debug(perflog)
             logger.trace(f"Solver command was: {solver_cmd}")
@@ -247,7 +253,7 @@ class RunSolverPerfEval(Executor):
                                 "place the binary under the name {runsolver}")
                 raise RuntimeError("RUNSOLVER binary could not be found.")
 
-            run_cmd = f"{runsolver:s} --delay 20 --rss-swap-limit {self.mem_limit:.0f} -W {self.cpu_limit:.0f}  " \
+            run_cmd = f"{runsolver:s} --delay 20 --vsize-limit {self.mem_limit:.0f} -W {self.cpu_limit:.0f}  " \
                       f"-w {watcher:s} -v {varfile:s} {perfcmdline:s} > {stdout_p:s} 2>> {stderr_p:s}"
 
             logger.trace(f'Logging run parameters to {runparameters_p}')
@@ -256,10 +262,16 @@ class RunSolverPerfEval(Executor):
                 runparameters_f.write(json.dumps(run_details))
 
             logger.trace(run_cmd)
-            logger.info(f"Running {directory}")
-            #TODO: check for environment!!!!! NEXT
+            my_env = os.environ.copy()
+            my_env["TMPDIR"] = f"{f}"
+            my_env["MAXTMP"] = f"{self.tmp_limit}"
+            my_env["MAXRSS"] = f"{self.mem_limit}"
+            my_env["TIMEOUT"] = f"{self.cpu_limit}"
+            logger.trace(f"System Environment: {my_env}")
 
-            p_solver = Popen(run_cmd, stdout=PIPE, stderr=PIPE, shell=True, close_fds=True, cwd=outdir)
+            logger.info(f"Running {directory}")
+            p_solver = Popen(run_cmd, stdout=PIPE, stderr=PIPE, shell=True, close_fds=True, cwd=outdir,
+                             env=my_env)
             output, err = p_solver.communicate()
 
             if err != b'':

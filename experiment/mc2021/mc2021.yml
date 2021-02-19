@@ -5,6 +5,7 @@ limits:
   time: 300 # s
 #  time: 3600
   memory: 8048 # mb
+  tmpdisk: 8048 # GB
   scheduler_memory: 32768 #mb
 
 steps:
@@ -74,13 +75,13 @@ tools:
     parameters:
         bash:
           exec_tmpdir: "/run/shm/runsolver_mc2021_track1_{solver}_{filename}_{run}/"
-          #not implemented	  	     
+          #not implemented
           delete_tmp: True
-          cmd: "/projects/sat/mccompetition/mc_competitions/MCC2021/reprobench/experiment/mc2021/0-mc2020/track1/{solver}/{solver}_wrapper.sh --tmpdir={tmpdir} --origfile={ofilename} {filename}"
+          cmd: "/projects/sat/mccompetition/mc_competitions/MCC2021/reprobench/experiment/mc2021/0-mc2020/track1/{solver}/{solver}_wrapper.sh --tmpdir={tmpdir} --origfile={ofilename} --timeout={walllimit} --maxtmp={maxtmp} --maxrss={memlimit} --task=mc {filename}"
           env: "TMPDIR={tmpdir}"
           solver:
             - cril-d4
-#            - nus-ganak
+            - nus-ganak
 #            - nus-onlyapprox
 #            - rice-addmc
 #            - ucla-c2d-bpe2

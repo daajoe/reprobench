@@ -30,7 +30,8 @@ class PrefExec(ExecutableTool):
         self.delete_tmp = self.parameters.get('delete_tmp', True)
         env=self.parameters['env'].format(tmpdir=tmpdir)
         cmd=self.parameters['cmd'].format(solver=solver, filename="{filename}",
-                                          tmpdir="{tmpdir}", ofilename="{ofilename}")
+                                          tmpdir="{tmpdir}", ofilename="{ofilename}",
+                                          walllimit="{walllimit}", maxtmp="{maxtmp}", memlimit="{memlimit}")
         #return [self.get_path() + " " + cmd]
         return [cmd]
 
