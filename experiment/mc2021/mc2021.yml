@@ -2,8 +2,8 @@ title: MC2021
 description: Benchmark for mergesat experiments (norbert)
 
 limits:
-  time: 300 # s
-#  time: 3600
+#  time: 5 # s
+  time: 7200
   memory: 8048 # mb
   tmpdisk: 8048 # GB
   scheduler_memory: 32768 #mb
@@ -49,11 +49,10 @@ tasks:
   track1_full:
     type: file
 #    path: /projects/p_mcc2020/track1/benchmarks/
-    path: /projects/sat/mccompetition/mc_competitions/MCC2021/reprobench/instances
+    path: /projects/sat/mccompetition/mc_competitions/MCC2021/reprobench/instances/track1_all
     extract_archives: true
     patterns: |
-      **/*
-      **/*.old
+      **/*.mcc2020_cnf
       !**/*.tar.bz2
       !**/*.tar.xz
       !**/*.tar.gz
@@ -69,6 +68,7 @@ tasks:
 #      **/*
 #      TT7F-34-25.cnf.xz
 
+
 tools:
   mc2021_precomp:
     module: experiment.mc2021.executor.PrefExec
@@ -82,12 +82,12 @@ tools:
           solver:
             - cril-d4
             - nus-ganak
-#            - nus-onlyapprox
-#            - rice-addmc
-#            - ucla-c2d-bpe2
-#            - ucla-minic2d
-#            - ucla-minic2d-bpe
-#            - ucla-sdd-bpe
+            - nus-onlyapprox
+            - rice-addmc
+            - ucla-c2d-bpe2
+            - ucla-minic2d
+            - ucla-minic2d-bpe
+            - ucla-sdd-bpe
 
 #        py:
 #          cmd: "/projects/p_mcc2020/track1/bin/solver_binaries/{solver}.py {filename}"

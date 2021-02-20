@@ -71,21 +71,21 @@ trap interrupted TERM
 trap interrupted INT
 
 echo "c o ================= POS CMDLINE ARGS ==============="
-echo "c o $@"
+echo "c o $*"
 
 echo "c o ================= Changing directory to output directory ==============="
 cd "$(dirname "$TMPDIR")" || (echo "Could not change directory to $TMPDIR. Exiting..."; exit 1)
 
-BIN_DIR=$(realpath $(dirname $0)/bin)
+BIN_DIR=$(realpath $(dirname $0))
 
 tmpfile=$(mktemp ${PTMPDIR}/result.XXXXXX)
 
-echo "c o ================= RUNNING GANAK ONLY ==============="
-cmd="$BIN_DIR/ganak_plus_panini $1"
+echo "c o ================= RUNNING ADDMC ONLY ==============="
+cmd="$BIN_DIR/addmc"
 myenv="TMPDIR=$TMPDIR"
 echo "c o SOLVERCMD=$cmd"
 
-env $myenv $cmd > $tmpfile &
+env $myenv $cmd < $1 > $tmpfile &
 PID=$!
 wait $PID
 exit_code=$?

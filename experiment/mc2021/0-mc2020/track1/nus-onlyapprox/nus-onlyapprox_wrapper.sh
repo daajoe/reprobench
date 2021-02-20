@@ -1,53 +1,123 @@
-#!/bin/bash
-# set -x
-BIN_DIR=$(realpath $(dirname $0))
+#!/usr/bin/env bash
+#set -x
+# A POSIX variable
+OPTIND=1         # Reset in case getopts has been used previously in the shell.
 
-tout_be=100
-tout_ganak=500
-tout_be_relaxed=$((tout_be+tout_be))
-tout_approxmc=950
+echo "c o CALLSTR $*"
 
-SECONDS=0
-rm -f proj*
-rm -f out*
-rm -f newfile*
-rm -f input*
+for i in "$@"
+do
+case $i in
+    -t=*|--tmpdir=*)
+    PTMPDIR="${i#*=}"
+    shift # past argument=value
+    ;;
+    -r=*|--maxrss=*)
+    PMAXRSS="${i#*=}"
+    shift # past argument=value
+    ;;
+    -d=*|--maxtmp=*)
+    PMAXTMP="${i#*=}"
+    shift # past argument=value
+    ;;
+    -w=*|--timeout=*)
+    PTIMEOUT="${i#*=}"
+    shift # past argument=value
+    ;;
+    -a=*|--task=*)
+    PTASK="${i#*=}"
+    shift # past argument=value
+    ;;
+    --default)
+    DEFAULT=YES
+    shift # past argument with no value
+    ;;
+    *)
+          # unknown option
+    ;;
+esac
+done
+shift $((OPTIND))
 
-echo "c Getting indep support, timeout: ${tout_be}"
-grep -v "^c" - | sed "s/pcnf/cnf/" | grep -v "^vp" > inputfile
-rm -f projection
-touch projection
-$($BIN_DIR/bin/doalarm ${tout_be_relaxed} $BIN_DIR/bin/arjun inputfile > projection) > /dev/null 2>&1
-sed -i "s/V/vp/" projection
-found=`grep "vp .* 0$" projection`
-echo "c found is: $found"
+echo "c o =============== TEST CMDLINE ARGS ========================="
+echo "c o CMDLINE TMPDIR = ${PTMPDIR}"
+echo "c o CMDLINE PMAXTMP = ${PMAXTMP}"
+echo "c o CMDLINE MAXRSS = ${PMAXRSS}"
+echo "c o CMDLINE TIMEOUT = ${PTIMEOUT}"
 
-# count support size
-suppsize=100000
-if [[ $found == *"vp"* ]]; then
-    suppsize=`grep "vp .*0$" projection | sed "s/ /\\n/g" | wc -l`
-    suppsize=$((suppsize-2))
-    echo "c indep support size by B+E: $suppsize"
+echo "c o =============== TEST ENV VARS ==========================="
+echo "c o ENV TMPDIR = ${TMPDIR}"
+echo "c o ENV PMAXTMP = ${MAXTMP}"
+echo "c o ENV MAXRSS = ${MAXRSS}"
+echo "c o ENV TIMEOUT = ${TIMEOUT}"
+
+echo "c o ================= SET PRIM INTRT HANDLING ==============="
+function interrupted(){
+  echo "c o Sending kill to subprocess"
+  kill -TERM $PID
+  echo "c o Removing tmp files"
+  [ ! -z "$prec_tmpfile" ] && rm prec_tmpfile
+  [ ! -z "$tmpfile" ] && rm $tmpfile
+}
+
+function finish {
+  # Your cleanup code here
+  echo "c o Removing tmp files"
+  [ ! -z "$prec_tmpfile" ] && rm prec_tmpfile
+  [ ! -z "$tmpfile" ] && rm $tmpfile
+}
+trap finish EXIT
+trap interrupted TERM
+trap interrupted INT
+
+echo "c o ================= POS CMDLINE ARGS ==============="
+echo "c o $*"
+
+echo "c o ================= Changing directory to output directory ==============="
+cd "$(dirname "$TMPDIR")" || (echo "Could not change directory to $TMPDIR. Exiting..."; exit 1)
+
+BIN_DIR=$(realpath $(dirname $0)/bin)
+
+tmpfile=$(mktemp ${PTMPDIR}/result.XXXXXX)
+
+echo "c o ================= RUNNING GANAK ONLY ==============="
+cmd="$BIN_DIR/doalarm $(( ${PTIMEOUT}-5 )) $BIN_DIR/approxmc --verb 0 --delta 0.15 --epsilon 0.2 $1"
+myenv="TMPDIR=$TMPDIR"
+echo "c o SOLVERCMD=$cmd"
+
+env $myenv $cmd > $tmpfile &
+PID=$!
+wait $PID
+exit_code=$?
+echo "c solver_wrapper: ==============================="
+echo "c solver_wrapper: Solver finished with exit code="$exit_code
+echo "c f RET="$exit_code
+
+if ! [ $exit_code -eq "0" ] ; then
+  echo "s UNKNOWN"
+  exit 1
 fi
 
-if [[ $suppsize -gt 2500 ]];then
-    tout_ganak=$(( 1780-SECONDS ))
+
+result=$(cat $tmpfile | grep "^s " | awk '{print $3}')
+
+if [ -z "$result" ] ; then
+  echo "s UNKNOWN"
+  exit 1
 fi
 
-if [[ $found == *"vp"* ]]; then
-    echo "c OK, Arjun succeeded"
-    cp inputfile newfile2
-    cat projection >> newfile2
+if [ $result -eq "0" ] ; then
+  echo "s UNSATISFIABLE"
+  echo "c s $PTASK"
+  echo "c s log10-estimate inf"
+  echo "c s exact quadruple int 0"
 else
-    echo "c WARNING B+E did NOT succeed"
-    cp inputfile newfile2
+  echo "s SATISFIABLE"
+  echo "c type $PTASK"
+  #let's play codegolf
+  log10=$(echo $result | python3 -c 'import sys; import math; print(math.log10(int(sys.stdin.readline())));')
+  echo "c s log10-estimate $log10"
+  echo "c s exact quadruple int $result"
 fi
 
-sed 's/vp/c ind/g' newfile2 | sed 's/ pcnf/ cnf/g' > newfile3
-
-
-
-tout_approxmc=$((1790 - SECONDS))
-echo "c Running ApproxMC, timeout: ${tout_approxmc}"
-$BIN_DIR/bin/doalarm  ${tout_approxmc} $BIN_DIR/bin/approxmc --verb 0 --delta 0.15 --epsilon 0.2 newfile3 
-exit 0
+exit $exit_code
