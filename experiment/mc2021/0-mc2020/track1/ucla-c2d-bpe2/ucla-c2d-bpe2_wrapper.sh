@@ -121,8 +121,14 @@ echo "c o ================= RUNNING C2D ==============="
 VAR_COUNT=$(python -c "print('${HEADER}'.strip().split()[-2])")
 CLAUSE_COUNT=$(python -c "print('${HEADER}'.strip().split()[-1])")
 if [ "$CLAUSE_COUNT" == "0" ]; then
-    echo "s mc $((2 ** $VAR_COUNT))"
-    exit 0
+  result="$((2 ** $VAR_COUNT))"
+  echo "s SATISFIABLE"
+  echo "c type $PTASK"
+  #let's play codegolf
+  log10=$(echo $result | python3 -c 'import sys; import math; print(math.log10(int(sys.stdin.readline())));')
+  echo "c s log10-estimate $log10"
+  echo "c s exact quadruple int $result"
+  exit 0
 fi
 myenv="TMPDIR=$TMPDIR"
 cmd="$EXE -count -in $TMP_BPE_CNF"
