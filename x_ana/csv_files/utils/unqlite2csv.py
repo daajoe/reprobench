@@ -14,7 +14,8 @@ keys = [
     'solver', 'run', 'instance',
     'platform', 'hostname',
     'return_code', 'cpu_time', 'wall_time', 'max_memory', 'verdict',
-    'run_id', 'rss', 'cpu_sys_time', 'desc', 'depr', 'count'
+    'run_id', 'rss', 'cpu_sys_time', 'desc', 'depr', 'count',
+    'log10_est', 'penalty'
 ]
 
 def data2csv(source, output, unqlite):

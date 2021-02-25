@@ -27,7 +27,7 @@ solver_re = {
         "count_old": (re.compile(r"s\s*mc\s*(?P<val>([-+]?([0-9]*[.])?[0-9]+([eE][-+]?\d+)?))"), lambda x: x),
         "decision": (re.compile(r"^s\s+(?P<val>(UNSATISFIABLE|SATISFIABLE|UNKNOWN))"), lambda x: x),
         "type": (re.compile(r"^(?P<val>!SAT)"), lambda x: x),
-        "log10-est": (re.compile(r"^c\s+s\s+log10-estimate\s+(?P<val>([-+]?([0-9]*[.])?[0-9]+([eE][-+]?\d+)?))"),
+        "log10_est": (re.compile(r"^c\s+s\s+log10-estimate\s+(?P<val>([-+]?([0-9]*[.])?[0-9]+([eE][-+]?\d+)?))"),
                       lambda x: x),
         "count": (re.compile(r"^c\s+s\s+(approx|exact)\s+(arb|single|double|quadruple)\s+"
                               r"(int|log10|prec-sci|float)\s+"
@@ -72,6 +72,7 @@ def extract_data(stream, d, delimn, patterns):
 
 def fix_jsons(folder, db, from_json=True, from_varfile=True, platform='missing',
               hostname='missing', rss_default='nan', run_id_prefix='output/sat_arch'):
+    solver_rexex = re.compile(solver_name_re)
     writeout = True
     i = 0
     if writeout:
@@ -105,19 +106,22 @@ def fix_jsons(folder, db, from_json=True, from_varfile=True, platform='missing',
                  "return_code": 64, "signal": 0, "runsolver_STATUS": 64, "runsolver_TIMEOUT": 0,
                  "runsolver_MEMOUT": 0, "max_memory": "nan", "rss": rss_default}
 
-        print(dirname)
         try:
-            print(re.findall(solver_name_re, d['run_id'].split('/'))) #[2])[0][0]
-            solver = re.findall(solver_name_re, d['run_id'].split('/')[2])[0][0]
+            m=solver_rexex.match(d['run_id'].split('/')[2])
+            if m:
+                solver=m.group('solver')
+            else:
+                solver=f"NA"
+                logger.error(f"Could not determine solver for run_id: {d['run_id']}")
             d['solver'] = solver
-            print(solver)
-            exit(2)
             d['instance'] = '/'.join(d['run_id'].split('/')[3:-1])
             d['run'] = int(d['run_id'].split('/')[-1])
+            d['count'] = np.nan
+            d['log10_est'] = np.nan
+            d['penalty'] = np.nan
+            d['depr'] = np.nan
         except IndexError:
-            print(d['run_id'])
-            print(d['run_id'].split('/')[2])
-            print(re.findall(solver_name_re, d['run_id'].split('/')[2]))
+            logger.warning(d['run_id'])
             raise RuntimeError
         rss = re.findall(rss_re, d['run_id'].split('/')[2])
         if rss and rss != [('', '', '', '', '')]:
