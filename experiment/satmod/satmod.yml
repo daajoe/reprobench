@@ -1,0 +1,61 @@
+title: SATMOD
+description: Benchmark
+
+limits:
+  time: 14400
+  memory: 8048 # mb
+  tmpdisk: 8048 # GB
+  scheduler_memory: 32768 #mb
+
+steps:
+  run:
+# move to step that runs once on a node, but not every time; there is no point in collecting the data every time
+    - module: reprobench.core.sysinfo.CollectSystemInfo4Server
+    - module: reprobench.core.setup.SetupKernel
+      config:
+        transparent_hugepage: always
+        # see: https://www.kernel.org/doc/html/v4.12/admin-guide/pm/intel_pstate.html
+        governors: 2.8Ghz
+    # TODO: performance governors / --cpu-freq srun
+    - module: reprobench.executors.RunSolverPerfEval
+    # provide non-perf runner
+    # provide configurable perf parameters
+#    - module: reprobench.executors.PsmonExecutor
+      config:
+        nonzero_rte: False
+
+observers:
+  - module: reprobench.core.sysinfo.SystemInfoObserver
+#  - module: reprobench.executors.RunStatisticObserver
+  - module: reprobench.executors.RunStatisticExtendedObserver
+
+
+
+tasks:
+  SAT_gauss:
+    type: filelist
+    #TODO: update on cluster
+    path: /projects/sat/satmod_rb/
+    filelist: experiment/satmod/list_unsat_gauss.txt
+
+tools:
+  satmod:
+    module: experiment.satmod.executor.PrefExec
+    parameters:
+        bash:
+          exec_tmpdir: "/run/shm/runsolver_satmod_{solver}_{filename}_{run}/"
+          #not implemented
+          delete_tmp: True #TODO: update path below
+          cnf_output: "/projects/sat/satmod_rb/output/cnfs"
+          cmd: "/projects/sat/satmod_rb/experiment/satmod/satmod_wrapper.sh {{filename}} {cnf_output} {sample_cls} {sample_cls_vars} {solver}"
+          env: "TMPDIR={tmpdir}"
+          solver:
+            - Lingeling
+          sample_cls: 40
+          sample_cls_vars: 0.33
+
+runs:
+  satmod:
+    #TODO: fix the all
+    all:
+      - SAT_gauss

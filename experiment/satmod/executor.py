@@ -11,11 +11,12 @@ from reprobench.tools.executable import ExecutableTool
 class PrefExec(ExecutableTool):
     name = "MC Preprocessor"
     path = ""
-    #path="./satmod_wrapper.sh"
+
+    # path="./satmod_wrapper.sh"
 
     def __init__(self, context):
         super().__init__(context)
-        self.output=self.parameters.get('output')
+        self.output = self.parameters.get('output')
 
     def get_arguments(self):
         return [f"{self.prefix}{key} {value}" for key, value in self.parameters.items()]
@@ -23,16 +24,17 @@ class PrefExec(ExecutableTool):
     def get_cmdline(self):
         logger.warning(self.get_path())
         logger.trace(self.get_arguments())
-        solver=self.parameters['solver']
-        tmpdir=self.parameters['exec_tmpdir'].format(solver=solver,
-                                                     run="{run}", filename="{filename}")
+        tmpdir = self.parameters['exec_tmpdir'].format(**self.parameters,
+                                                       run="{run}", filename="{filename}")
+        #set all parameters as attributes
+        for key in self.parameters:
+            setattr(self, key, self.parameters[key])
+
         self.tmpdir = tmpdir
         self.delete_tmp = self.parameters.get('delete_tmp', True)
-        env=self.parameters['env'].format(tmpdir=tmpdir)
-        cmd=self.parameters['cmd'].format(solver=solver, filename="{filename}",
-                                          tmpdir="{tmpdir}", ofilename="{ofilename}",
-                                          walllimit="{walllimit}", maxtmp="{maxtmp}", memlimit="{memlimit}")
-        #return [self.get_path() + " " + cmd]
+        cmd = self.parameters['cmd'].format(**self.parameters)
+        logger.warning(f"CMD is {cmd}")
+        # raise RuntimeError
         return [cmd]
 
     def run(self, executor):
@@ -45,7 +47,7 @@ class PrefExec(ExecutableTool):
         executor.run(
             self.get_cmdline(),
             directory=self.cwd,
-            input_str="%s" %self.task,
+            input_str="%s" % self.task,
             out_path=self.get_out_path(),
             err_path=self.get_err_path(),
             output_path=self.output,

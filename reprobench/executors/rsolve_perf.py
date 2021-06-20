@@ -246,7 +246,7 @@ class RunSolverPerfEval(Executor):
                           f"dTLB-stores,iTLB-load-misses,iTLB-loads,cycles,stalled-cycles-backend,cache-misses " \
                           f"{solver_cmd}"
 
-            runsolver = os.path.abspath(os.path.join(self.reprobench_path, "bin/runsolver"))
+            runsolver = os.path.abspath(os.path.join(self.reprobench_path, "lib/runsolver"))
             if not (os.path.isfile(runsolver) and os.access(runsolver, os.X_OK)):
                 logger.critical(f"Runsolver binary could not be found at: {runsolver} or is not executable.")
                 logger.critical(f"Check https://github.com/daajoe/runsolver for making runsolver and "

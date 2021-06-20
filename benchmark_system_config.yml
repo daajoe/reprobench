@@ -1,10 +1,4 @@
-#default_exp_config: "./experiment/steiner/steiner_exp_all.yml"
-#default_exp_config: "./experiment/mcc2020/mcc2020_exp_all.yml"
-#default_exp_config: "./experiment/fhtd/frasmt_exp_all.yml"
-#default_exp_config: "./experiment/thp/0thp_exp_all.yml"
-#default_exp_config: "./experiment/satarch/satarch_exp_all.yml"
-#default_exp_config: "./experiment/thp/0thp_exp_mc_preprocess.yml"
-default_exp_config: "./experiment/mc2021/mc2021.yml"
+default_exp_config: "./experiment/satmod/satmod.yml"
 #TODO: move to benchmark file
 repeat: 1
 #TODO: add_loglevel

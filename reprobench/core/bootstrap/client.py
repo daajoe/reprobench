@@ -1,6 +1,7 @@
 from loguru import logger
 
 from reprobench.task_sources.doi import DOISource
+from reprobench.task_sources.filelist import FileListSource
 from reprobench.task_sources.file import FileSource
 from reprobench.task_sources.url import UrlSource
 from reprobench.utils import import_class
@@ -16,7 +17,7 @@ def bootstrap_runs(config):
 
 def bootstrap_tasks(config):
     logger.info("Bootstrapping tasks...")
-    available_sources = (FileSource, UrlSource, DOISource)
+    available_sources = (FileSource, UrlSource, DOISource, FileListSource)
 
     logger.trace(config)
 

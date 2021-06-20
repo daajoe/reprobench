@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from reprobench.core.server import BenchmarkServer
 from loguru import logger
 import sys
