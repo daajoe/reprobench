@@ -35,7 +35,7 @@ tasks:
   SAT_gauss:
     type: filelist
     #TODO: update on cluster
-    path: /projects/sat/satmod_rb/
+    path: /projects/p_gpusat/automated-reasoner-builds/benchmarks/
     filelist: experiment/satmod/list_unsat_gauss.txt
 
 tools:
@@ -43,16 +43,33 @@ tools:
     module: experiment.satmod.executor.PrefExec
     parameters:
         bash:
-          exec_tmpdir: "/run/shm/runsolver_satmod_{solver}_{filename}_{run}/"
+          #exec_tmpdir: "/run/shm/runsolver_satmod_{solver}_{filename}_{run}/"
+          exec_tmpdir: "/tmp/runsolver_satmod_{solver}_{filename}_{run}/"
           #not implemented
           delete_tmp: True #TODO: update path below
-          cnf_output: "/projects/sat/satmod_rb/output/cnfs"
-          cmd: "/projects/sat/satmod_rb/experiment/satmod/satmod_wrapper.sh {{filename}} {cnf_output} {sample_cls} {sample_cls_vars} {solver}"
+          cnf_output: "/home/jfichte/satmod_rb/output/cnfs"
+          cmd: "/home/jfichte/satmod_rb/experiment/satmod/satmod_wrapper.sh  {{filename}} {cnf_output} {{solver}} {{sample_cls}} {{sample_cls_vars}}"
           env: "TMPDIR={tmpdir}"
           solver:
             - Lingeling
-          sample_cls: 40
-          sample_cls_vars: 0.33
+            - Glucose4
+          #  - Cadical
+          #  - Mergesat3
+          #  - Maplesat
+          #  - MapleChrono
+          #  - MapleCM
+          sample_cls: 
+            - 5
+            - 10
+          #  - 20
+          #  - 40
+          #  - 60
+          sample_cls_vars: 
+            - 0.1
+            - 0.2
+          #  - 0.33
+          #  - 0.5
+          #  - 0.7
 
 runs:
   satmod:

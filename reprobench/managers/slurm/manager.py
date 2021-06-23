@@ -78,7 +78,7 @@ class SlurmManager(BaseManager):
             target_path = f"{self.rbdir}/reprobench-bin"
 
         worker_submit_cmd = [
-            "./sbatch",
+            "sbatch",
             "--parsable",
             f"--array=1-{self.reserve_hosts}",
             f"--time={self.time_limit}",

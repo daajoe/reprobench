@@ -234,6 +234,7 @@ class BenchmarkWorker:
             logger.debug(f"Using the following workers: {workers}")
             for worker_id in workers:
                 logger.debug(f"Running {worker_id}")
+                logger.error(f"PINNING {pinning}")
                 t = threading.Thread(target=internal_runner, args=[worker_id, pinning[worker_id]])
                 runner_threads.append(t)
                 t.start()

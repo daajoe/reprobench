@@ -43,6 +43,7 @@ class PrefExec(ExecutableTool):
 
     def run_internal(self, executor, environment):
         logger.debug([*self.get_cmdline(), self.task])
+        print(self.__dict__.keys())
 
         executor.run(
             self.get_cmdline(),
@@ -53,4 +54,5 @@ class PrefExec(ExecutableTool):
             output_path=self.output,
             tmpdir=self.tmpdir,
             delete_tmp=self.delete_tmp,
+            args=self.__dict__
         )

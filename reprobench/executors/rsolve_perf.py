@@ -228,12 +228,12 @@ class RunSolverPerfEval(Executor):
             payload_p, perflog, stderr_p, stdout_p, varfile, watcher, runparameters_p = self.log_paths(outdir)
 
             if '{filename}' in cmdline or '{filename}' in cmdline[0]:
-                logger.error(cmdline)
+                logger.info(cmdline)
+                del kwargs['args']['tmpdir']
                 solver_cmd = " ".join(cmdline).format(filename=fpath, ofilename=input_str, run=runid,
                                                       tmpdir=f, memlimit=self.mem_limit,
                                                       walllimit=self.cpu_limit,
-                                                      #TODO
-                                                      maxtmp=self.tmp_limit)
+                                                      maxtmp=self.tmp_limit,**kwargs['args'])
                 logger.info(solver_cmd)
             else:
                 solver_cmd = f"{' '.join(cmdline)} -f {fpath} -i {input_str}"

@@ -14,8 +14,9 @@ source $CONDA_PATH/etc/profile.d/conda.sh
 conda activate satmod
 echo "Parameters are $@"
 
+which python3
 #TODO: fix on cluster
-env /home/jfichte/projects/sat/satmod/wormos/slorw.py "$@" &
+env /home/jfichte/anaconda3/envs/satmod/bin/python3 /home/jfichte/satmod/wormos/slorw.py "$@" &
 
 #env $env $solver_cmd $filename &
 PID=$!
